@@ -2,6 +2,9 @@
 <html>
   <head>
     <style>
+      #textData {
+  margin-left: 20px; /* Adjust the margin as needed */
+}
         h1 {
             font: oblique;
 font-family: -apple-system,BlinkMacSystemFont,Segoe UI,Roboto,Oxygen,Ubuntu,Cantarell,Fira Sans,Droid Sans,Helvetica Neue,sans-serif;
@@ -30,125 +33,140 @@ font-weight: bold;
         height: 211px;
         border-radius: 25px;
       }
-
-      #textData {
+      entry-container {
         margin-left: 20px; /* Adjust the margin as needed */
       }
+ 
     </style>
   </head>
   <body>
     <button onclick="changeId()">Change your station number</button>
-    <div class="container">
-      <img style="width: 150px; height: 150px;" id="SongImg" src="">
-      <div id="textData">
-        <h1 id="channelName">channel + channelNumber</h1>
-        <h2 id="SongTlt">Title</h2>
-        <h3 id="SongArt">Artists</h3>
-        <h5 id="SongTime">TimePlayed</h5>
-      </div>
-    </div>
+    <div class="entry-container" id="entries"></div>
     <script src="requestdata.js"></script>
     <script>
       let id, name, number, url; // Global variables to store data
-      let startTime, trackName, artists, spotifyPreviewUrl, spotifyCoverUrl; // Global variables to store data
+let startTime, trackName, artists, spotifyPreviewUrl, spotifyCoverUrl; // Global variables to store data
 
-      function changeId() {
-        var stationNumber = prompt("Enter your station number for SXM");
-        if (stationNumber) {
-          datafetch(parseInt(stationNumber));
-          localStorage.setItem("lastId", stationNumber);
-        }
-      }
+function changeId() {
+  var stationNumber = prompt("Enter your station number for SXM");
+  if (stationNumber) {
+    datafetch(parseInt(stationNumber));
+    localStorage.setItem("lastId", stationNumber);
+  }
+}
 
-      function getUserStationNumber() {
-        if (!localStorage.getItem('lastId')) {
-          changeId();
-        } else {
-          var stationNumber = localStorage.getItem('lastId');
-          datafetch(parseInt(stationNumber));
-        }
-      }
+function getUserStationNumber() {
+  if (!localStorage.getItem('lastId')) {
+    changeId();
+  } else {
+    var stationNumber = localStorage.getItem('lastId');
+    datafetch(parseInt(stationNumber));
+  }
+}
 
-      function datafetch(itemKey) {
-        fetchDataFromApi(itemKey)
-          .then(item => {
-            console.log('Item', item);
-            // Store data in variables
-            id = item.id;
-            name = item.name;
-            number = item.number;
-            url = item.url;
+function datafetch(itemKey) {
+  fetchDataFromApi(itemKey)
+    .then(item => {
+      console.log('Item', item);
+      // Store data in variables
+      id = item.id;
+      name = item.name;
+      number = item.number;
+      url = item.url;
 
-            // Fetch data for the specific station song
-            datafetchsong(id);
+      // Fetch data for the specific station song
+      datafetchsong(id);
 
-            // Refresh data from the API every 30 seconds
-            setInterval(function () {
-              datafetchsong(id);
-            }, 30000); // 30 seconds (30,000 milliseconds)
-          })
-          .catch(error => {
-            console.error('Error:', error);
-          });
-      }
+      // Refresh data from the API every 30 seconds
+      setInterval(function () {
+        datafetchsong(id);
+      }, 30000); // 30 seconds (30,000 milliseconds)
+    })
+    .catch(error => {
+      console.error('Error:', error);
+    });
+}
 
-      function convertTo12HourFormat(timeString) {
-        const [hours, minutes] = timeString.split(':');
+function convertTo12HourFormat(timeString) {
+  const [hours, minutes] = timeString.split(':');
+  let period = 'AM';
+  let hours12 = parseInt(hours);
 
-        let period = 'AM';
-        let hours12 = parseInt(hours);
+  if (hours12 >= 12) {
+    period = 'PM';
+    hours12 = hours12 > 12 ? hours12 - 12 : 12; // Fix for 12:00 PM
+  }
 
-        if (hours12 >= 12) {
-          period = 'PM';
-          hours12 = hours12 > 12 ? hours12 - 12 : hours12;
-        }
+  // Special case: 12:00 AM should display as 12:00 AM, not 0:00 AM
+  if (hours12 === 0) {
+    hours12 = 12;
+  }
 
-        // Convert '00' to '12'
-        if (hours12 === 0) {
-          hours12 = 12;
-        }
+  // Pad single-digit hours and minutes with leading zeros
+  hours12 = hours12.toString().padStart(2, '0');
+  var formattedTime = `${hours12}:${minutes} ${period}`;
+  return formattedTime;
+}
+function removeScriptParts(scriptArray, startIndex, endIndex) {
+    scriptArray.splice(startIndex, endIndex - startIndex + 1);
+}
+function datafetchsong(stationId) {
+  fetchDataFromApiSong(stationId)
+    .then(data => {
+      console.log('Data for specific station song:', data);
 
-        // Pad single-digit hours and minutes with leading zeros
-        hours12 = hours12.toString().padStart(2, '0');
-        const formattedTime = `${hours12}:${minutes} ${period}`;
-        return formattedTime;
-      }
+      // Accessing properties from the returned data
+      startTime = data[0].start_time;
+      trackName = data[0].track.name;
+      artists = data[0].track.artists;
+      spotifyPreviewUrl = data[0].spotify.preview_url;
+      spotifyCoverUrl = data[0].spotify.cover;
 
-      function datafetchsong(stationId) {
-        fetchDataFromApiSong(stationId)
-          .then(data => {
-            console.log('Data for specific station song:', data);
+      // Convert the start time to the user's local time
+      const localTime = new Date(startTime).toLocaleTimeString(undefined, {
+        hour: '2-digit',
+        minute: '2-digit',
+        hour12: true
+      });
 
-            // Accessing properties from the returned data
-            startTime = data[0].start_time;
-            trackName = data[0].track.name;
-            artists = data[0].track.artists;
-            spotifyPreviewUrl = data[0].spotify.preview_url;
-            spotifyCoverUrl = data[0].spotify.cover;
 
-            // Convert the start time to the user's local time
-            const localTime = new Date(startTime).toLocaleTimeString(undefined, {
-              hour: '2-digit',
-              minute: '2-digit',
-              hour12: true
+      // Clear previous entries
+      const entriesContainer = document.getElementById('entries');
+      entriesContainer.innerHTML = '';
+
+      // Display each entry
+      data.forEach(entry => {
+              const entryDiv = document.createElement('div');
+              const localStartTime = new Date(entry.start_time).toLocaleTimeString(undefined, {
+                hour: '2-digit',
+                minute: '2-digit',
+                hour12: true
+              });
+
+              entryDiv.innerHTML = `
+    <div class="container">
+        <img style="width: 150px; height: 150px;" id="SongImg" src="${entry.spotify.cover}">
+        <div id="textData">
+            <h1 id="channelName">${name + ", SXM: " + number}</h1>
+            <h2 id="SongTlt" onclick="openSpotifyPreview('${entry.spotify.preview_url}')">${entry.track.name}</h2>
+            <h3 id="SongArt">${entry.track.artists}</h3>
+            <h5 id="SongTime">${convertTo12HourFormat(localStartTime)}</h5>
+        </div>
+    </div>
+    <hr>
+`;
+              entriesContainer.appendChild(entryDiv);
             });
-
-            // Update the DOM elements with the retrieved data
-            document.getElementById('SongImg').src = spotifyCoverUrl;
-            document.getElementById('channelName').innerText = name + ", SXM: " + number;
-            document.getElementById('SongTlt').innerText = trackName;
-            document.getElementById('SongTlt').onclick = spotifyPreviewUrl;
-            document.getElementById('SongArt').innerText = artists;
-            document.getElementById('SongTime').innerText = localTime;
-
           })
           .catch(error => {
             console.error('Error fetching song data:', error);
           });
-      }
-
-      // Initially call getUserStationNumber to start the process
-      getUserStationNumber();
+}
+function openSpotifyPreview(url) {
+    window.open(url);
+}
+// Initially call getUserStationNumber to start the process
+getUserStationNumber();
 
     </script>
     <footer>Not affiliated, associated, authorized, endorsed by, or in any way officially connected with Sirius XM Radio Inc. The official SiriusXM website can be found at siriusxm.com. The channel names, marks, emblems and images are registered trademarks of their respective owners.</footer>
