@@ -150,7 +150,7 @@ function datafetchsong(stationId) {
             <h1 id="channelName">${name + ", SXM: " + number}</h1>
             <h2 id="SongTlt" onclick="openSpotifyPreview('${entry.spotify.preview_url}')">${entry.track.name}</h2>
             <h3 id="SongArt">${entry.track.artists}</h3>
-            <h5 id="SongTime">${convertTo12HourFormat(localStartTime)}</h5>
+            <h5 id="SongTime">${localStartTime}</h5>
         </div>
     </div>
     <hr>
