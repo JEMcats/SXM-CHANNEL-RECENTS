@@ -78,8 +78,7 @@ async function fetchDataFromApi(key) {
         }, 3000);
        preDont = true
       } else {
-        if (dontRun === true){
-
+        if (preDont === true){
         }else{
           datafetchsong(id);
         }
