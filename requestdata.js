@@ -71,7 +71,7 @@ async function fetchDataFromApi(key) {
       const hours = parseInt(formattedTimeParts[0]);
       const minutes = parseInt(formattedTimeParts[1]);
   
-      if (hours === 1 && minutes > 0 && minutes < 10) {
+      if (hours < 1 && hours >= 0 && minutes > 0 && minutes < 60) {
         console.log('The time is greater than 1:00 and less than 1:10. Running code...');
         setInterval(function () {
           dontRun = true;
