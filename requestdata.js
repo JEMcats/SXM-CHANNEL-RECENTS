@@ -29,11 +29,12 @@ async function fetchDataFromApi(key) {
 
   let lastTime = '';
   let dontRun = false;
-  
+  let lastEntry = '';
+  let preDont = '';
   async function fetchDataFromApiSong(id) {
     let apiUrl = `https://xmplaylist.com/api/station/${id}`;
   
-    if (lastTime && !dontRun) {
+    if (lastTime && !dontRun && !preDont) {
       const unixTimestamp = Date.parse(lastTime);
       apiUrl += `?last=${unixTimestamp}`;
     }
@@ -59,7 +60,7 @@ async function fetchDataFromApi(key) {
       const formattedTime = new Date(lastTime).toLocaleTimeString(undefined, {
         hour: '2-digit',
         minute: '2-digit',
-        hour12: false // Use 24-hour format
+        hour12: false
       });
   
       console.log('Last Time (Unix Timestamp):', Date.parse(lastTime));
@@ -70,9 +71,12 @@ async function fetchDataFromApi(key) {
       const hours = parseInt(formattedTimeParts[0]);
       const minutes = parseInt(formattedTimeParts[1]);
   
-      if (hours === 0 && minutes > 0 && minutes < 60) {
+      if (hours === 1 && minutes > 0 && minutes < 60) {
         console.log('The time is greater than 1:00 and less than 1:10. Running code...');
-        dontRun = true;
+        setInterval(function () {
+          dontRun = true;
+        }, 3000);
+       preDont = true
       } else {
         if (dontRun === true){
 
@@ -81,7 +85,7 @@ async function fetchDataFromApi(key) {
         }
       
       }
-  
+      
       return data;
     } catch (error) {
       console.error('Error fetching data:', error);

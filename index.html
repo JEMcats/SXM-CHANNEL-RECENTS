@@ -157,17 +157,19 @@ function datafetchsong(stationId) {
     <hr>
 `;
 let doesEntry = document.getElementById(entry.id);
-let existEntry = document.getElementById(entry.id);
 entryDiv.id = entry.id;
 
-if (doesEntry === null) {
-  entriesContainer.appendChild(entryDiv);
-} else if (dontRun && doesEntry === null) {
+if (dontRun === true && doesEntry === null) {
   // If dontRun is true and doesEntry is null, make the new entry the first child
   entriesContainer.insertBefore(entryDiv, entriesContainer.firstChild);
+  console.warn("Ran New Entry At Top")
+} else if (doesEntry === null) {
+  entriesContainer.appendChild(entryDiv);
+  console.warn("Ran New Entry")
 } else {
   // If entry already exists, update its content
-  existEntry.innerHTML = entryDiv.innerHTML;
+  doesEntry.innerHTML = entryDiv.innerHTML;
+  console.warn("Ran Update Entry")
 }
 
              
