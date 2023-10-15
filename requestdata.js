@@ -26,8 +26,17 @@ async function fetchDataFromApi(key) {
       throw error;
     }
   }
+
+  let lastTime = '';
+  let dontRun = false;
+  
   async function fetchDataFromApiSong(id) {
-    const apiUrl = `https://xmplaylist.com/api/station/${id}`;
+    let apiUrl = `https://xmplaylist.com/api/station/${id}`;
+  
+    if (lastTime && !dontRun) {
+      const unixTimestamp = Date.parse(lastTime);
+      apiUrl += `?last=${unixTimestamp}`;
+    }
   
     try {
       const response = await fetch(apiUrl, {
@@ -42,8 +51,38 @@ async function fetchDataFromApi(key) {
       }
   
       const data = await response.json();
+      if (data.length > 0) {
+        const lastData = data[data.length - 1];
+        lastTime = lastData.start_time;
+      }
   
-      return data;  // Return the entire JSON object
+      const formattedTime = new Date(lastTime).toLocaleTimeString(undefined, {
+        hour: '2-digit',
+        minute: '2-digit',
+        hour12: false // Use 24-hour format
+      });
+  
+      console.log('Last Time (Unix Timestamp):', Date.parse(lastTime));
+      console.log('Formatted time:', formattedTime);
+  
+      // Check if the formatted time is greater than 1:00 and less than 1:10
+      const formattedTimeParts = formattedTime.split(':');
+      const hours = parseInt(formattedTimeParts[0]);
+      const minutes = parseInt(formattedTimeParts[1]);
+  
+      if (hours === 0 && minutes > 0 && minutes < 60) {
+        console.log('The time is greater than 1:00 and less than 1:10. Running code...');
+        dontRun = true;
+      } else {
+        if (dontRun === true){
+
+        }else{
+          datafetchsong(id);
+        }
+      
+      }
+  
+      return data;
     } catch (error) {
       console.error('Error fetching data:', error);
       throw error;
